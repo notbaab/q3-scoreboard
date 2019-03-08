@@ -1,6 +1,8 @@
 from flask import render_template, request, g, redirect, url_for, jsonify, flash
 from . import app, db
 from .models import User
+from threading import Thread
+from . import dataloader
 
 from quake3_log_parser import parser
 
@@ -29,7 +31,10 @@ def upload_file():
         # do some song and dance to decode it. Performant? Naw but
         # easy to tweak later
         txt = file.stream.read()
-        as_lines = txt.decode("utf-8").split("\n")
-        parser.parse_lines(as_lines)
+        # as_lines = txt.decode("utf-8").split("\n")
+        txt = txt.decode("utf-8")
+        t = Thread(target=dataloader.load_from_text, args=(txt,))
+        t.start()
+        # parser.parse_lines(as_lines)
 
     return redirect('/')
