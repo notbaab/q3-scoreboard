@@ -1,9 +1,23 @@
 from . import db
 
+BOT_ID = 1
+BOT_NAME = "<bot>"
+WORLD_ID = 2
+WORLD_NAME = "<world>"
+
 
 def init_db():
     db.create_all()
-    # add the WORLD Player
+    bot = User(BOT_NAME)
+    world = User(WORLD_NAME)
+    db.session.add(bot)
+    db.session.commit()
+    db.session.add(world)
+    db.session.commit()
+
+
+def get_kills():
+    db.session.query
 
 
 class User(db.Model):
