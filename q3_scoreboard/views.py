@@ -1,20 +1,15 @@
 from flask import render_template, request, g, redirect, url_for, jsonify, flash
-from . import app, db
-from .models import User
+from . import app
 from threading import Thread
 from . import dataloader
-
-from quake3_log_parser import parser
 
 
 @app.route("/")
 def scoreboard():
-    # user = User(username='admin', email='admin@example.com')
-    # db.session.add(user)
-    # db.session.commit()
-    return "hello"
+    return render_template('scoreboard.html', users=[])
 
 
+# TODO: Limit upload directory to a finite size
 @app.route('/upload_score', methods=['POST'])
 def upload_file():
     # check if the post request has the file part
