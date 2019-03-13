@@ -45,6 +45,18 @@ class Game(db.Model):
     mapname = db.Column(db.String(80))
 
 
+class Score(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    player_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    score = db.Column(db.Integer)
+    game_id = db.Column(db.Integer, db.ForeignKey("score.id"))
+
+    def __init__(self, player_id, score, game_id):
+        self.player_id = player_id
+        self.score = score
+        self.game_id = game_id
+
+
 class GameKill(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
