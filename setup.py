@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 requires = [
-    "Flask",
-    "Flask-SQLAlchemy",
+    "Flask>=1.1.1",
+    "Flask-SQLAlchemy>=2.4.1",
 ]
 
 setup(name="q3_scoreboard",
