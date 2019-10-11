@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 requires = [
-    "flask",
+    "Flask",
     "Flask-SQLAlchemy",
 ]
 
