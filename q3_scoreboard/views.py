@@ -1,12 +1,28 @@
-from flask import render_template, request, g, redirect, url_for, jsonify, flash
-from . import app
+from flask import (render_template, request, g, redirect, url_for, jsonify,
+                   flash)
+from . import app, game_manager
 from threading import Thread
 from . import dataloader
 
 
 @app.route("/")
 def scoreboard():
+    print("doing stuffs")
     return render_template('scoreboard.html', users=[])
+
+
+@app.route("/current_game")
+def current_game():
+    map_image = "Q3DM8.jpg"
+    map_image_url = url_for('static', filename="img/" + map_image)
+    return render_template('game_status.html', map_image_url=map_image_url)
+
+
+@app.route("/start_game", methods=['POST'])
+def start_game():
+    game = game_manager.GameManager(app.config["IOQUAKE_BASE_DIRECTORY"])
+    status = {"status": "we good foolio"}
+    return jsonify(status)
 
 
 # TODO: Limit upload directory to a finite size
