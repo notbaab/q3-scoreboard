@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Score{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/current-game.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/arcade-button.css') }}">
+
+<div class='row'>
+    <div class="col-3"><button onclick="start_game()" class="push--flat"></button></div>
+</div>
+
+<div class='row'>
+    <div class="col-6">
+        <img class="current_map_image" src="{{ map_image_url }}">
+    </div>
+    <div class="col-6">
+        a;lsdkj as;ldkj asd;lkj ads;lk asl;kdjf l;kadjf ;lkaj ;flkjasdl; jfasd
+        fasd;lka ds;lkj a;lskdf ;kladf l;kajf kajdsf
+        adsf;lkasf ;lkasf l;kja ;lfkjads f'ads
+        fads;lkf ;lakdjf ;lkadjf ;kladjfl;kjapoiaejr fodwjf o;iapj rfiopajewsdofi
+        adsf;lkjaswd;ofje wpoj o;iawlef ;oiasf;oladjf
+        [awefoi;awiof;oijaeswiofj]
+    </div>
+</div>
+
+<script type="text/javascript">
+    function start_game() {
+        post_data("start_game").then(game_started);
+    }
+
+    function game_started(info) {
+        console.log(info)
+    }
+
+    async function post_data(url = '', data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+          method: 'POST', // *GET, POST, PUT, DELETE, etc.
+          mode: 'cors', // no-cors, *cors, same-origin
+          cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+          credentials: 'same-origin', // include, *same-origin, omit
+          headers: {
+            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          redirect: 'follow', // manual, *follow, error
+          referrer: 'no-referrer', // no-referrer, *client
+          body: JSON.stringify(data) // body data type must match "Content-Type" header
+        });
+        return await response.json(); // parses JSON response into native JavaScript objects
+    }
+
+</script>
+{% endblock %}
