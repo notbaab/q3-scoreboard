@@ -31,6 +31,11 @@ class User(db.Model):
         return '<User %r>' % self.username
 
     @staticmethod
+    def get_user_id(username):
+        user = User.get_user_or_create_user()
+        return user.id
+
+    @staticmethod
     def get_user_or_create_user(username):
         user = User.query.filter_by(username=username).first()
         if user is None:
