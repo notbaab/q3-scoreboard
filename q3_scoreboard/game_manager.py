@@ -5,10 +5,51 @@ import filecmp
 import os
 import os.path
 import logging
+import threading
+
+from queue import Queue, Empty
 
 logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+
+class GMAccessor(object):
+    """Class responsible for making the game manager singleton and allowing
+    access to it. Extracted out since the GameManager has no reason to be a
+    singleton except for we want to access it across requests and this is
+    slightly better than a global? Maybe not?
+    """
+    __game_manager = None
+    cleanup_function = None
+
+    @staticmethod
+    def game_exists():
+        return GMAccessor.__game_manager is not None
+
+    @staticmethod
+    def get_instance():
+        return GMAccessor.__game_manager
+
+    @staticmethod
+    def stop_and_remove_instance():
+        GMAccessor.__game_manager.stop()
+        GMAccessor.__game_manager = None
+        if cleanup_function is not None:
+            print("cleaning up")
+            cleanup_function()
+
+
+    @staticmethod
+    def create_instance(patch_dir, game_baseq3_dir, server_exe, cleanup_function = None):
+        if GMAccessor.game_exists():
+            raise Exception("Cannot create two game instances")
+
+        manager = GameManager(patch_dir, game_baseq3_dir, server_exe)
+        GMAccessor.__game_manager = manager
+        GMAccessor.cleanup_function = cleanup_function
+
+        return GMAccessor.__game_manager
 
 
 class GameManager(object):
@@ -22,6 +63,7 @@ class GameManager(object):
         self.game_baseq3 = game_baseq3
         self.server_exe = server_exe
         self.server_thread = None
+        self.game_output = Queue()
 
     def _copy_patch_data(self):
         patch_files = [os.path.join(self.patch_dir, f)
@@ -52,12 +94,9 @@ class GameManager(object):
         """
         self._copy_patch_data()
         self._start_server_process()
-
-        lines_read = 0
-        while lines_read < 130:
-            # newline comes from the output
-            print(self._read_line_from_game(), end="")
-            lines_read += 1
+        self._output_read_thread = threading.Thread(
+            target=self._read_line_into_queue)
+        self._output_read_thread.start()
 
     def _block_on_server(self):
         """Block the the game process. Useful for debugging and development
@@ -69,15 +108,19 @@ class GameManager(object):
         self.game_process.terminate()
 
     def _start_server_process(self):
-        self.game_process = subprocess.Popen([self.server_exe, "+exec",
-                                              "server.cfg"],
-                                             stdout=subprocess.PIPE,
-                                             stderr=subprocess.STDOUT)
+        cmd = [self.server_exe, "+exec", "server.cfg"]
+        # stdout is a bunch of gibberish so pipe to dev null. stdin
+        # interferes with pdb debug so pipe that to dev null.
+        self.game_process = subprocess.Popen(cmd,
+                                             stdout=subprocess.DEVNULL,
+                                             stdin=subprocess.DEVNULL,
+                                             stderr=subprocess.PIPE,
+                                             text=True, encoding="utf-8")
 
-    def _read_line_from_game(self):
-        """Can thrown an exception if there is no line ready
-        """
-        return self.game_process.stdout.readline().decode("utf-8")
+    def _read_line_into_queue(self):
+        for line in iter(self.game_process.stderr.readline, ''):
+            # print(line)
+            self.game_output.put(line)
 
 
 # headless test
