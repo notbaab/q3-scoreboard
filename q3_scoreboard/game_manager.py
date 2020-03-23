@@ -35,9 +35,9 @@ class GMAccessor(object):
     def stop_and_remove_instance():
         GMAccessor.__game_manager.stop()
         GMAccessor.__game_manager = None
-        if cleanup_function is not None:
+        if GMAccessor.cleanup_function is not None:
             print("cleaning up")
-            cleanup_function()
+            GMAccessor.cleanup_function()
 
 
     @staticmethod
