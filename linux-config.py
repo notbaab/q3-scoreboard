@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
-dir_path = os.path.dirname(os.path.realpath(__file__))
 
+dir_path = os.path.dirname(os.path.realpath(__file__))
 home = str(Path.home())
 
 # Enable Flask's debugging features. Should be False in production
