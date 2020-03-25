@@ -39,9 +39,9 @@ class GMAccessor(object):
             print("cleaning up")
             GMAccessor.cleanup_function()
 
-
     @staticmethod
-    def create_instance(patch_dir, game_baseq3_dir, server_exe, cleanup_function = None):
+    def create_instance(patch_dir, game_baseq3_dir, server_exe,
+        cleanup_function=None):
         if GMAccessor.game_exists():
             raise Exception("Cannot create two game instances")
 
