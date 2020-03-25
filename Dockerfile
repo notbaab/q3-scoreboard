@@ -31,20 +31,7 @@ RUN mkdir /home/ioq3srv/ioquake3/patch-files
 
 RUN chown ioq3srv -R /home/ioq3srv/
 
-# install our log parser and server
-# RUN git clone https://github.com/notbaab/q3-logparser.git && \
-#     cd q3-logparser && \
-#     python3 setup.py develop
-
-# WORKDIR /home/ioq3srv/
-# # installing with develop allows us to user the relative config file.
-# # We should not use a relative config file in the final go of it
-# RUN git clone https://github.com/notbaab/q3-scoreboard.git && \
-#     cd q3-scoreboard && \
-#     python3 setup.py develop
-
 # for dev purposes, share this folder
-
 ENV IOQ3_CONFIG=/home/ioq3srv/q3-scoreboard/linux-config.py
 
 ENV FLASK_DEBUG=1
