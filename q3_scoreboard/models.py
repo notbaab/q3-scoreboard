@@ -8,12 +8,18 @@ WORLD_NAME = "<world>"
 
 def init_db():
     db.create_all()
-    bot = User(BOT_NAME)
-    world = User(WORLD_NAME)
-    db.session.add(bot)
-    db.session.commit()
-    db.session.add(world)
-    db.session.commit()
+    # add our trusty bot and world users if they didn't exist
+    bot = User.query.get(BOT_ID)
+    if bot is None:
+        bot = User(BOT_NAME)
+        db.session.add(bot)
+        db.session.commit()
+
+    world = User.query.get(WORLD_ID)
+    if world is None:
+        world = User(WORLD_NAME)
+        db.session.add(world)
+        db.session.commit()
 
 
 def get_kills():

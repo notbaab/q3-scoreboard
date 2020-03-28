@@ -4,15 +4,27 @@ from . import app, game_manager
 from threading import Thread
 from . import game_streamer, game_loader
 
+# TODO: Move the db operations to outside the models files
+from . import models, db
+
 
 class StopFlagRef:
     def __init__(self):
         self.stop = False
 
+
 def create_cleanup_function(stop_flag_ref):
     def stop():
         stop_flag_ref.stop = True
     return stop
+
+
+
+@app.route("/init-db")
+def init_db():
+    print("Running a safe initialize db script")
+    models.init_db()
+    return "Done"
 
 
 @app.route("/")
