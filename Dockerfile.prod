@@ -4,8 +4,6 @@ MAINTAINER notbaab v0.9
 RUN apk add --update \
     python3 \
     python3-dev
-    # py-pip \
-    # build-base \
 
 # to reduce image size all build and cleanup steps are performed in one docker layer
 RUN \
@@ -37,7 +35,7 @@ RUN git clone https://github.com/notbaab/q3-scoreboard.git && \
     python3 setup.py install
 
 # TODO: Make install take a argument to give the path of the linux files?
-ENV IOQ3_CONFIG=/home/ioq3srv/q3-scoreboard/linux-config.py
+ENV IOQ3_CONFIG=/home/ioq3srv/q3-scoreboard/docker-config.py
 
 ENV FLASK_DEBUG=1
 ENV FLASK_APP=q3_scoreboard
