@@ -21,6 +21,7 @@ RUN \
 
 # Move some stuff into a known location
 RUN adduser ioq3srv -D
+
 RUN mv ~/ioquake3 /home/ioq3srv/
 RUN chown ioq3srv -R /home/ioq3srv/
 
@@ -41,6 +42,11 @@ ENV FLASK_DEBUG=1
 ENV FLASK_APP=q3_scoreboard
 # Until we get an nginx server
 ENV FLASK_RUN_HOST=0.0.0.0
+
+RUN mkdir /patch-files
+RUN mkdir /database
+RUN chown ioq3srv -R /database
+RUN chown ioq3srv -R /patch-files
 
 USER ioq3srv
 
