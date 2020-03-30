@@ -52,6 +52,19 @@ def stop_game():
     return jsonify(status)
 
 
+@app.route("/get-patch-files", methods=['GET'])
+def send_patch_files():
+    memory_file = io.BytesIO()
+    patch_dir = app.config["IOQUAKE_PATCH_DIR"]
+    with zipfile.ZipFile(memory_file, 'w') as zf:
+        for f in os.listdir(patch_dir):
+            full_path = os.path.join(patch_dir, f)
+            zf.write(full_path, f)
+    memory_file.seek(0)
+    return send_file(memory_file, attachment_filename='patch-files.zip',
+                     as_attachment=True)
+
+
 @app.route("/start_game", methods=['POST'])
 def start_game():
     if game_manager.GMAccessor.game_exists():
