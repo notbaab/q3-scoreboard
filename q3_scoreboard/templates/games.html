@@ -1,0 +1,26 @@
+<!-- <meta http-equiv="refresh" content="30"> -->
+{% extends "base.html" %}
+{% block title %}Score{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+
+<div class="col-md-12">
+    <table class="table table-striped table-hover quake-font">
+        <thead class="table-title">
+            <th><h3>Map</h3></th>
+            <th><h3>Winner</h3></th>
+        </thead>
+        {% for game in games|sort(attribute='time_started', reverse=True) %}
+            {% if game.winner is not none %}
+            <tr>
+                <td><a class="quake-font" href="/score/{{game.id}}">{{game.mapname}}</a></td>
+                <td><a class="quake-font" href="/score/{{game.id}}">{{game.winner.username}}</a></td>
+                <td><a class="quake-font" href="/score/{{game.id}}">{{game.time_started}}</a></td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+</div>
+{% endblock %}
