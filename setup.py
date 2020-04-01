@@ -12,6 +12,7 @@ setup(name="q3_scoreboard",
       packages=find_packages(),
       install_requires=requires,
       include_package_data=True,
+      zip_safe=False,
       entry_points="""
       [console_scripts]
       q3-initdb=q3_scoreboard.models:init_db
