@@ -1,5 +1,8 @@
 from flask import (render_template, request, g, redirect, url_for, jsonify,
-                   flash)
+                   flash, send_file)
+import io
+import os
+import zipfile
 from . import app, game_manager
 from threading import Thread
 from . import game_streamer, game_loader
@@ -19,6 +22,21 @@ def create_cleanup_function(stop_flag_ref):
     return stop
 
 
+@app.route("/score/<game_id>")
+def game_score(game_id):
+    data = models.get_score(db.session, game_id)
+    return render_template('scoreboard.html', users=data["players"],
+                           map=data["map"])
+
+
+@app.route("/games")
+def game_list():
+    games = db.session.query(models.game).all()
+    for game in db.session.query(models.game).all():
+        print(vars(game))
+
+    return render_template('games.html', games=games)
+
 
 @app.route("/init-db")
 def init_db():
@@ -27,17 +45,23 @@ def init_db():
     return "Done"
 
 
+@app.route("/player/<player_id>")
+def player_profile(player_id):
+    profile = models.get_user_profile(db.session, player_id)
+    return render_template('profile.html', profile=profile)
+
+
 @app.route("/")
-def scoreboard():
-    print("doing stuffs")
-    return render_template('scoreboard.html', users=[])
+def global_leaderboard():
+    players = models.get_leaderboard(db.session)
+    return render_template('leaderboard.html', players=players)
 
 
-@app.route("/current_game")
-def current_game():
-    map_image = "Q3DM8.jpg"
-    map_image_url = url_for('static', filename="img/" + map_image)
-    return render_template('game_status.html', map_image_url=map_image_url)
+# @app.route("/current_game")
+# def current_game():
+#     map_image = "Q3DM8.jpg"
+#     map_image_url = url_for('static', filename="img/" + map_image)
+#     return render_template('game_status.html', map_image_url=map_image_url)
 
 
 @app.route("/stop_game", methods=['POST'])
@@ -77,7 +101,8 @@ def start_game():
         app.config["IOQUAKE_PATCH_DIR"],
         app.config["IOQUAKE_BASEQ3_DIR"],
         app.config["IOQUAKE_SERVER_EXE"],
-        create_cleanup_function(stop_flag_ref)
+        log_dir_loc=app.config["LOG_DIR_LOC"],
+        cleanup_function=create_cleanup_function(stop_flag_ref)
     )
 
     game.start()
