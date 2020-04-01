@@ -31,8 +31,8 @@ def game_score(game_id):
 
 @app.route("/games")
 def game_list():
-    games = db.session.query(models.game).all()
-    for game in db.session.query(models.game).all():
+    games = db.session.query(models.Game).all()
+    for game in db.session.query(models.Game).all():
         print(vars(game))
 
     return render_template('games.html', games=games)
