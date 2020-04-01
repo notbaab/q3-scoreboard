@@ -96,3 +96,143 @@ class GameKill(db.Model):
         self.killer = killer
         self.victum = victum
         self.weapon_id = weapon_id
+
+
+GAME_SCORE = ("SELECT user.username, score.score FROM score, user WHERE"
+              " score.game_id = :id "
+              "AND user.id = score.player_id")
+
+LEADERBOARD = ("SELECT user.username, sum(score.score), "
+               "count(score.game_id) FROM score, user WHERE "
+               "user.id = score.player_id GROUP BY score.player_id")
+
+CARNAGE = ("SELECT user.username, sum(score.score), "
+           "count(score.game_id) FROM score, user WHERE "
+           "user.id = score.player_id and user.id = :id")
+
+KILLED_MOST = """
+SELECT count(game_kill.id), user.username FROM game_kill, \
+user WHERE user.id = game_kill.victum and game_kill.killer = :id \
+GROUP BY game_kill.victum ORDER BY count(game_kill.id) DESC
+"""
+
+KILLED_BY = """
+SELECT count(game_kill.id), user.username FROM game_kill, \
+user WHERE user.id = game_kill.killer and game_kill.victum = :id \
+GROUP BY game_kill.killer ORDER BY count(game_kill.id) DESC
+"""
+
+TOOL_OF_DESTRUCTION = """
+SELECT count(weapon.id), weapon.name FROM game_kill, weapon, \
+user WHERE user.id = game_kill.killer and weapon.id = game_kill.weapon_id and \
+user.id = 7 GROUP BY weapon.id ORDER BY count(weapon.id) DESC
+"""
+
+GAME_HISTORY = """
+SELECT game.time_started, game.mapname, score.score, game.id FROM score, user,\
+game WHERE user.id = score.player_id  and score.game_id = game.id and \
+user.id = :id ORDER BY game.time_started DESC
+"""
+
+
+def get_user_profile(session, user_id):
+    profile = {}
+    user = User.query.get(user_id)
+    if user is None:
+        return None
+
+    profile["name"] = user.username
+    weapon_stats = session.execute(TOOL_OF_DESTRUCTION,
+                                   {'id': user_id}).fetchall()
+    profile["weapon_stats"] = weapon_stats
+
+    game_history = session.execute(GAME_HISTORY, {'id': user_id}).fetchall()
+    kill_table = session.execute(KILLED_MOST, {'id': user_id}).fetchall()
+    victum_table = session.execute(KILLED_BY, {'id': user_id}).fetchall()
+    carnage = session.execute(CARNAGE, {'id': user_id}).fetchall()[0]
+
+    profile["weapon_stats"] = []
+    profile["game_history"] = []
+    profile["kill_table"] = []
+    profile["victum_table"] = []
+    profile["carnage"] = {}
+
+    # do some gross clean up of everything before adding it. Probably
+    # can do this is sqlaclchemy but I dont' want to at the moment. At
+    # least this creates a good view if we want to change it later
+    for game in game_history:
+        profile["game_history"].append({
+            "time": game[0],
+            "mapname": game[1],
+            "score": game[2],
+            "id": game[3]
+        })
+
+    for kill in kill_table:
+        profile["kill_table"].append({
+            "count": kill[0],
+            "user": kill[1],
+        })
+
+    for victum in victum_table:
+        profile["victum_table"].append({
+            "count": victum[0],
+            "user": victum[1],
+        })
+
+    for weapon in weapon_stats:
+        weapon_parts = weapon[1].split("_")
+        pretty_name = " ".join(weapon_parts[1:])
+        profile["weapon_stats"].append({
+            "kills": weapon[0],
+            "weapon": pretty_name
+        })
+
+    profile["carnage"]["total_kills"] = carnage[1]
+    profile["carnage"]["total_games"] = carnage[2]
+    profile["carnage"]["ratio"] = carnage[1] / float(carnage[2])
+
+    return profile
+
+
+def get_score(session, game_id):
+    # session.query(Game).where()
+    game = Game.query.get(game_id)
+    return_dict = {
+        "map": game.mapname,
+        "players": []
+    }
+    results = session.execute(GAME_SCORE, {'id': game_id}).fetchall()
+    for result in results:
+        username, score = result
+        player_dict = {
+            "username": username,
+            "score": score
+        }
+        return_dict["players"].append(player_dict)
+
+    return return_dict
+
+
+def get_leaderboard(session):
+    players = []
+
+    results = session.execute(LEADERBOARD)
+    for result in results:
+        username, total_kills, games_played = result
+        player_dict = {
+            "username": username,
+            "kills": total_kills,
+            "games_played": games_played,
+            "average_score_per_game": total_kills / float(games_played)
+        }
+        players.append(player_dict)
+
+    return players
+
+
+def query_db(conn, query, args=(), one=False):
+    cur = conn.execute(query, args)
+    rv = cur.fetchall()
+    cur.close()
+    return (rv[0] if rv else None) if one else rv
