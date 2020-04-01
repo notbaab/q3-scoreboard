@@ -23,3 +23,4 @@ DATABASE_FILE = "data.db"
 SQLALCHEMY_DATABASE_URI = "sqlite:////{}/{}".format(DATABASE_DIR,
                                                     DATABASE_FILE)
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+LOG_DIR_LOC = os.path.join(DATABASE_DIR)

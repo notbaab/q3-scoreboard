@@ -6,6 +6,7 @@ import os
 import os.path
 import logging
 import threading
+import datetime
 
 from queue import Queue, Empty
 
@@ -41,11 +42,12 @@ class GMAccessor(object):
 
     @staticmethod
     def create_instance(patch_dir, game_baseq3_dir, server_exe,
-        cleanup_function=None):
+                        log_dir_loc=None, cleanup_function=None):
         if GMAccessor.game_exists():
             raise Exception("Cannot create two game instances")
 
-        manager = GameManager(patch_dir, game_baseq3_dir, server_exe)
+        manager = GameManager(patch_dir, game_baseq3_dir,
+                              server_exe, log_dir_loc)
         GMAccessor.__game_manager = manager
         GMAccessor.cleanup_function = cleanup_function
 
@@ -57,12 +59,13 @@ class GameManager(object):
     """Class that starts, stops and parses events for a game.
     """
 
-    def __init__(self, patch_dir, game_baseq3, server_exe):
+    def __init__(self, patch_dir, game_baseq3, server_exe, log_dir_loc=None):
         super(GameManager, self).__init__()
         self.patch_dir = patch_dir
         self.game_baseq3 = game_baseq3
         self.server_exe = server_exe
         self.server_thread = None
+        self.log_dir_loc = log_dir_loc
         self.game_output = Queue()
 
     def _copy_patch_data(self):
@@ -95,7 +98,7 @@ class GameManager(object):
         self._copy_patch_data()
         self._start_server_process()
         self._output_read_thread = threading.Thread(
-            target=self._read_line_into_queue)
+            target=self._read_line)
         self._output_read_thread.start()
 
     def _block_on_server(self):
@@ -117,10 +120,25 @@ class GameManager(object):
                                              stderr=subprocess.PIPE,
                                              text=True, encoding="utf-8")
 
-    def _read_line_into_queue(self):
+    def _stream_line_to_queue_and_logfile(self):
+        timestr = datetime.datetime.utcnow().isoformat() + "Z"
+        file = os.path.join(self.log_dir_loc, timestr)
+        with open(file, "a") as f:
+            for line in iter(self.game_process.stderr.readline, ''):
+                self.game_output.put(line)
+                f.write(line)
+
+        print("Ended")
+
+    def _stream_line_to_queue(self):
         for line in iter(self.game_process.stderr.readline, ''):
-            # print(line)
             self.game_output.put(line)
+
+    def _read_line(self):
+        if self.log_dir_loc is not None:
+            self._stream_line_to_queue_and_logfile()
+        else:
+            self._stream_line_to_queue()
 
 
 # headless test

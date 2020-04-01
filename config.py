@@ -18,3 +18,4 @@ IOQUAKE_SERVER_EXE = ("/Applications/ioquake3/ioquake3.app/Contents/MacOS/"
 DATABASE_FILE = "data.db"
 SQLALCHEMY_DATABASE_URI = "sqlite:////{}/{}".format(dir_path, DATABASE_FILE)
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+LOG_DIR_LOC = os.path.join(dir_path, "game-logs")
