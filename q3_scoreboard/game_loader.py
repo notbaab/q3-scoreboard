@@ -3,7 +3,8 @@ Functions responsible for loading games from full server log files
 """
 from . import models
 from . import db
-from quake3_log_parser import lineparsers, tracker
+from datetime import datetime
+from quake3_log_parser import parser
 
 
 def get_user_id_from_username(username):
@@ -13,17 +14,24 @@ def get_user_id_from_username(username):
 
 # returns the username or <BOT> of the player
 def get_userid(player):
+    username = player.name
     if player.is_bot:
-        return models.BOT_ID
-    return models.User.get_user_id(player.name)
+        username = models.BOT_PREFIX_NAME + " " + player.name
+    return get_user_id_from_username(username)
 
 
 def load_game(game):
     print("adding game")
     game_model = models.Game()
-    db.session.add(game_model)
+    winner = game.get_leader()
+    game_model.winner_id = get_userid(winner)
+    game_model.time_started = datetime.now()
+    game_model.mapname = game.map_name
+
     # commit so we can get the game id
+    db.session.add(game_model)
     db.session.commit()
+
     for stat_table in game.stat_table.values():
         # TODO: What to do about bots....Probably handle in the
         # load_stat_table_killl_entry
@@ -38,7 +46,7 @@ def load_game(game):
 
 
 def load_from_text(input_data):
-    games = lineparsers.parse_str(input_data)
+    games = parser.parse_str(input_data)
 
     for game in games:
         load_game(game)
@@ -49,6 +57,9 @@ def load_stat_table_kill_entry(game_id, kills, commit=False):
     for kill in kills:
         killer_id = get_userid(kill.killer)
         victum_id = get_userid(kill.victum)
+        models.Weapon.add_weapon_if_not_exists(kill.kill_method,
+                                               kill.kill_method_name)
+
         kill_entry = models.GameKill(game_id, killer_id, victum_id,
                                      kill.kill_method)
         db.session.add(kill_entry)

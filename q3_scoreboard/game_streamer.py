@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from . import models
 from . import db
 from quake3_log_parser import lineparsers, tracker, datastructures
@@ -10,19 +12,24 @@ def get_user_id_from_username(username):
 
 # returns the username of the player or BOT if a bot
 def get_userid(player):
+    username = player.name
     if player.is_bot:
-        return models.BOT_ID
-    return get_user_id_from_username(player.name)
+        username = models.BOT_PREFIX_NAME + " " + player.name
+    return get_user_id_from_username(username)
 
 
 def handle_kill_line(game_tracker, game_db_id, line):
-    killer_game_id, victum_game_id, method = lineparsers.parse_kill(line)
+    killer_game_id, victum_game_id, weapon_id, human_readble_method = \
+        lineparsers.parse_kill(line)
+
+    models.Weapon.add_weapon_if_not_exists(weapon_id, human_readble_method)
+
     killer = game_tracker.players.get(killer_game_id, None)
     victum = game_tracker.players.get(victum_game_id, None)
 
     killer_id = get_userid(killer)
     victum_id = get_userid(victum)
-    kill_entry = models.GameKill(game_db_id, killer_id, victum_id, method)
+    kill_entry = models.GameKill(game_db_id, killer_id, victum_id, weapon_id)
     db.session.add(kill_entry)
 
 
@@ -36,6 +43,7 @@ def read_game_from_queue(game_start_data, queue, stop_flag):
     """Continually read from the queue and stream out the updates to the db
     """
     game_model = models.Game()
+    game_model.time_started = datetime.now()
     game_model.mapname = game_start_data["mapname"]
     db.session.add(game_model)
 
@@ -56,8 +64,15 @@ def read_game_from_queue(game_start_data, queue, stop_flag):
 
         # parse it for the tracker
         if line_type == lineparsers.LineType.GAME_SHUTDOWN:
-            print("game is done")
             game_tracker.print_summary()
+
+            leader = game_tracker.get_leader()
+            winner_id = get_userid(leader)
+
+            game_model.winner_id = winner_id
+            game_model.time_finished = datetime.now()
+            db.session.add(game_model)
+            db.session.commit()
             return
 
         tracker.track_functions[line_type](game_tracker, line)
