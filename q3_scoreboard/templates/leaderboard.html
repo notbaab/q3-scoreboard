@@ -18,7 +18,7 @@
         </thead>
         {% for player in players|sort(attribute='kills', reverse=True) %}
             <tr>
-                <td>{{player["username"]}}</td>
+                <td><a class="quake-font" href="/player/{{player['id']}}">{{player["username"]}}</a></td>
                 <td style="text-align: right;" >{{player["kills"]}}</td>
                 <td style="text-align: right;" >{{player["games_played"]}}</td>
                 <td style="text-align: right;" >{{"%.2f"|format(player["average_score_per_game"])}}</td>

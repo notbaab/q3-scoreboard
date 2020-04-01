@@ -98,12 +98,12 @@ class GameKill(db.Model):
         self.weapon_id = weapon_id
 
 
-GAME_SCORE = ("SELECT user.username, score.score FROM score, user WHERE"
-              " score.game_id = :id "
+GAME_SCORE = ("SELECT user.username, score.score, user.id FROM score, "
+              "user WHERE score.game_id = :id "
               "AND user.id = score.player_id")
 
 LEADERBOARD = ("SELECT user.username, sum(score.score), "
-               "count(score.game_id) FROM score, user WHERE "
+               "count(score.game_id), user.id FROM score, user WHERE "
                "user.id = score.player_id GROUP BY score.player_id")
 
 CARNAGE = ("SELECT user.username, sum(score.score), "
@@ -204,10 +204,11 @@ def get_score(session, game_id):
     }
     results = session.execute(GAME_SCORE, {'id': game_id}).fetchall()
     for result in results:
-        username, score = result
+        username, score, id = result
         player_dict = {
             "username": username,
-            "score": score
+            "score": score,
+            "id": id
         }
         return_dict["players"].append(player_dict)
 
@@ -219,9 +220,10 @@ def get_leaderboard(session):
 
     results = session.execute(LEADERBOARD)
     for result in results:
-        username, total_kills, games_played = result
+        username, total_kills, games_played, id = result
         player_dict = {
             "username": username,
+            "id": id,
             "kills": total_kills,
             "games_played": games_played,
             "average_score_per_game": total_kills / float(games_played)
