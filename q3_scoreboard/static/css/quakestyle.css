@@ -8,7 +8,7 @@ html {
   font-family: helvetica, arial, sans-serif;
   font-size: 24px;
   font-weight: 400;
-  color: #c72c41;
+  color: #A93226;
 }
 
 
@@ -56,8 +56,8 @@ body {
   font-weight: 400;
   text-rendering: optimizeLegibility;
   margin-top:30px;
-  color: #ee4540;
-  background-color : #2d132c;
+  color: #A93226;
+  background-color : #1B1f1b ;
 }
 
 div.table-title {
