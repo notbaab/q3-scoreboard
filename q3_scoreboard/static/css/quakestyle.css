@@ -5,10 +5,10 @@ html {
 }
 
 .quake-font  {
-  font-family: "quake", helvetica, arial, sans-serif;
+  font-family: helvetica, arial, sans-serif;
   font-size: 24px;
   font-weight: 400;
-  color: #7f0000;
+  color: #A93226;
 }
 
 
@@ -51,13 +51,13 @@ html {
 }
 
 body {
-  font-family: "quake", helvetica, arial, sans-serif;
+  font-family: helvetica, arial, sans-serif;
   font-size: 16px;
   font-weight: 400;
   text-rendering: optimizeLegibility;
   margin-top:30px;
-  color: rgb(255, 0, 0);
-  background-color : rgb(0, 0, 0);
+  color: #A93226;
+  background-color : #1B1f1b ;
 }
 
 div.table-title {
@@ -80,7 +80,7 @@ div.table-title {
    font-size: 30px;
    font-weight: 400;
    font-style:normal;
-   font-family: "quake", helvetica, arial, sans-serif;
+   font-family: helvetica, arial, sans-serif;
    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
    text-transform:uppercase;
 }
