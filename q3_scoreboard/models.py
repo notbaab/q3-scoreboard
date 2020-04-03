@@ -125,7 +125,7 @@ GROUP BY game_kill.killer ORDER BY count(game_kill.id) DESC
 TOOL_OF_DESTRUCTION = """
 SELECT count(weapon.id), weapon.name FROM game_kill, weapon, \
 user WHERE user.id = game_kill.killer and weapon.id = game_kill.weapon_id and \
-user.id = 7 GROUP BY weapon.id ORDER BY count(weapon.id) DESC
+user.id = :id GROUP BY weapon.id ORDER BY count(weapon.id) DESC
 """
 
 GAME_HISTORY = """
