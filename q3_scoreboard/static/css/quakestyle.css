@@ -1,11 +1,12 @@
 @font-face { font-family: quake; src: url('/static/fonts/dpquake_.ttf'); }
+@font-face { font-family: iceland; src: url('/static/fonts/Iceland-Regular.ttf'); }
 
 html {
   height: 100%
 }
 
 .quake-font  {
-  font-family: helvetica, arial, sans-serif;
+  font-family: "iceland", helvetica, arial, sans-serif;
   font-size: 24px;
   font-weight: 400;
   color: #A93226;
@@ -51,7 +52,7 @@ html {
 }
 
 body {
-  font-family: helvetica, arial, sans-serif;
+  font-family: "iceland", helvetica, arial, sans-serif;
   font-size: 16px;
   font-weight: 400;
   text-rendering: optimizeLegibility;
@@ -77,10 +78,10 @@ div.table-title {
 }
 
 .table-title h3 {
-   font-size: 30px;
+   font-size: 40px;
    font-weight: 400;
    font-style:normal;
-   font-family: helvetica, arial, sans-serif;
+   font-family: "iceland", helvetica, arial, sans-serif;
    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.1);
    text-transform:uppercase;
 }
