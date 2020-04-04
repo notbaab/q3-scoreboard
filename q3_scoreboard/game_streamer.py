@@ -67,9 +67,9 @@ def read_game_from_queue(game_start_data, queue, stop_flag):
             game_tracker.print_summary()
 
             leader = game_tracker.get_leader()
-            winner_id = get_userid(leader)
+            if leader is not None:
+                game_model.winner_id = get_userid(leader)
 
-            game_model.winner_id = winner_id
             game_model.time_finished = datetime.now()
             db.session.add(game_model)
             db.session.commit()

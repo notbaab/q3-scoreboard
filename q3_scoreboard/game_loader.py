@@ -24,7 +24,8 @@ def load_game(game):
     print("adding game")
     game_model = models.Game()
     winner = game.get_leader()
-    game_model.winner_id = get_userid(winner)
+    if winner is not None:
+        game_model.winner_id = get_userid(winner)
     game_model.time_started = datetime.now()
     game_model.mapname = game.map_name
 
