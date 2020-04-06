@@ -1,11 +1,11 @@
-from flask import (render_template, request, g, redirect, url_for, jsonify,
+from flask import (render_template, request, redirect, url_for, jsonify,
                    flash, send_file)
 import io
 import os
 import zipfile
 from . import app, game_manager
 from threading import Thread
-from . import game_streamer, game_loader
+from . import game_streamer, game_loader, config_generator
 
 # TODO: Move the db operations to outside the models files
 from . import models, db
@@ -64,7 +64,7 @@ def global_leaderboard():
 #     return render_template('game_status.html', map_image_url=map_image_url)
 
 
-@app.route("/stop_game", methods=['POST'])
+@app.route("/stop_game", methods=["GET", "POST"])
 def stop_game():
     if not game_manager.GMAccessor.game_exists():
         status = {"status": "Game not started"}
@@ -89,11 +89,25 @@ def send_patch_files():
                      as_attachment=True)
 
 
-@app.route("/start_game", methods=['POST'])
+@app.route("/start_game", methods=['GET'])
 def start_game():
+    maps = models.Map.query.all()
+    return render_template("start_game.html", maps=maps)
+
+
+@app.route("/start_game", methods=['POST'])
+def start_game_endpoint():
     if game_manager.GMAccessor.game_exists():
-        status = {"status": "Game already started"}
+        status = {"success": 0, "msg": "Game already started"}
         return jsonify(status)
+
+    data = request.json
+    config_file_loc = "test.cfg"
+    config_generator.create_cfg_file( config_file_loc,
+        data["maps"], fraglimit = data["fraglimit"],
+        bot_minplayers = data["bot_minplayers"],
+        sv_maxclients = data["sv_maxclients"], randomize = data["randomize"]
+    )
 
     stop_flag_ref = StopFlagRef()
     # create the new game. Accessors remembers the instances created
@@ -101,6 +115,7 @@ def start_game():
         app.config["IOQUAKE_PATCH_DIR"],
         app.config["IOQUAKE_BASEQ3_DIR"],
         app.config["IOQUAKE_SERVER_EXE"],
+        cfg_file=config_file_loc,
         log_dir_loc=app.config["LOG_DIR_LOC"],
         cleanup_function=create_cleanup_function(stop_flag_ref)
     )
@@ -111,29 +126,29 @@ def start_game():
                args=(game.game_output, stop_flag_ref))
     t.start()
 
-    status = {"status": "we good foolio"}
+    status = {"success": 1, "status": "Started. Go pwn noobs."}
     return jsonify(status)
 
 
 # TODO: Limit upload directory to a finite size
-@app.route('/upload_score', methods=['POST'])
-def upload_file():
-    # check if the post request has the file part
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(url_for('/'))
-    file = request.files['file']
-    # if user does not select file, browser also
-    # submit an empty part without filename
-    if file.filename == '':
-        flash('No selected file')
-        return redirect('/')
-    if file:
-        # do some song and dance to decode it. Performant? Naw but
-        # easy to tweak later
-        txt = file.stream.read()
-        txt = txt.decode("utf-8")
-        t = Thread(target=game_loader.load_from_text, args=(txt,))
-        t.start()
+# @app.route('/upload_score', methods=['POST'])
+# def upload_file():
+#     # check if the post request has the file part
+#     if 'file' not in request.files:
+#         flash('No file part')
+#         return redirect(url_for('/'))
+#     file = request.files['file']
+#     # if user does not select file, browser also
+#     # submit an empty part without filename
+#     if file.filename == '':
+#         flash('No selected file')
+#         return redirect('/')
+#     if file:
+#         # do some song and dance to decode it. Performant? Naw but
+#         # easy to tweak later
+#         txt = file.stream.read()
+#         txt = txt.decode("utf-8")
+#         t = Thread(target=game_loader.load_from_text, args=(txt,))
+#         t.start()
 
-    return redirect('/')
+#     return redirect('/')

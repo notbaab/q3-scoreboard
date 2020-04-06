@@ -41,13 +41,13 @@ class GMAccessor(object):
             GMAccessor.cleanup_function()
 
     @staticmethod
-    def create_instance(patch_dir, game_baseq3_dir, server_exe,
+    def create_instance(patch_dir, game_baseq3_dir, server_exe, cfg_file=None,
                         log_dir_loc=None, cleanup_function=None):
         if GMAccessor.game_exists():
             raise Exception("Cannot create two game instances")
 
         manager = GameManager(patch_dir, game_baseq3_dir,
-                              server_exe, log_dir_loc)
+                              server_exe, log_dir_loc, cfg_file)
         GMAccessor.__game_manager = manager
         GMAccessor.cleanup_function = cleanup_function
 
@@ -59,7 +59,8 @@ class GameManager(object):
     """Class that starts, stops and parses events for a game.
     """
 
-    def __init__(self, patch_dir, game_baseq3, server_exe, log_dir_loc=None):
+    def __init__(self, patch_dir, game_baseq3, server_exe, log_dir_loc=None,
+                 cfg_file=None):
         super(GameManager, self).__init__()
         self.patch_dir = patch_dir
         self.game_baseq3 = game_baseq3
@@ -67,6 +68,7 @@ class GameManager(object):
         self.server_thread = None
         self.log_dir_loc = log_dir_loc
         self.game_output = Queue()
+        self.cfg_file = cfg_file
 
     def _copy_patch_data(self):
         patch_files = [os.path.join(self.patch_dir, f)
@@ -84,13 +86,20 @@ class GameManager(object):
             # exists, check if the file is the same and we need to copy it
             # shallow can probably be true since the chances that os.stat
             # is exactly the same but different is very low, but
-            # since os.stat will mostly return false, most comparions won't
+            # since os.stat will mostly return false, most comparisons won't
             # even read the files
             if not filecmp.cmp(f, dst, shallow=False):
                 logger.info("Copying %s to %s", f, dst)
                 shutil.copyfile(f, dst)
                 continue
             logger.info("%s and %s are the same, not copying", f, dst)
+
+        if self.cfg_file is not None:
+            name = os.path.basename(self.cfg_file)
+            dst = os.path.join(self.game_baseq3, name)
+            # cfg files are small, just copy over it every time
+            shutil.copyfile(self.cfg_file, dst)
+
 
     def start(self):
         """Doesn't block when the server starts,
@@ -111,7 +120,12 @@ class GameManager(object):
         self.game_process.terminate()
 
     def _start_server_process(self):
-        cmd = [self.server_exe, "+exec", "server.cfg"]
+        if self.cfg_file is not None:
+            name = os.path.basename(self.cfg_file)
+            cmd = [self.server_exe, "+exec", name]
+        else:
+            cmd = [self.server_exe, "+exec", "server.cfg"]
+
         # stdout is a bunch of gibberish so pipe to dev null. stdin
         # interferes with pdb debug so pipe that to dev null.
         self.game_process = subprocess.Popen(cmd,

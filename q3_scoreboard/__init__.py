@@ -16,6 +16,7 @@ else:
 
 db = SQLAlchemy(app)
 
+
 from . import views
 # # Load the views and model
 # #from app.models import models

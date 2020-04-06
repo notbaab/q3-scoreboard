@@ -30,9 +30,9 @@ html {
 }
 
 .quake-btn {
-  color: rgb(255, 0, 0);
-  background-color: Transparent;
-  border-color: rgb(255, 0, 0);
+  color: #fff;
+  background-color: #a93226;
+  border-color: #a93226;
 }
 
 .quake-btn:hover, .quake-btn:focus, .quake-btn:active, .quake-btn.active, .open>.dropdown-toggle.quake-btn {

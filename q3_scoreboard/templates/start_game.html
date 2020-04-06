@@ -1,0 +1,123 @@
+<!-- <meta http-equiv="refresh" content="30"> -->
+{% extends "base.html" %}
+{% block title %}Score{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12 pt-1 text-center">
+        <button onclick="start_game()" class="btn quake-btn">Start</button>
+    </div>
+    <div class="col-6 pt-1">
+        <input type="number" name="fraglimit" id="fraglimit" value=20>
+        <label for="fraglimit">Frag Limit</label>
+    </div>
+    <div class="col-6 pt-1">
+        <input type="number" name="bot_minplayers" id="bot_minplayers" value=4>
+        <label for="bot_minplayers">Bot Min Players(Filled with bots)</label>
+    </div>
+    <div class="col-6 pt-1">
+        <input type="number" name="sv_maxclients" id="sv_maxclients" value=8>
+        <label for="sv_maxclients">Max Players</label>
+    </div>
+    <div class="col-6 pt-1">
+        <input type="checkbox" name="randomize" id="randomize" checked>
+        <label for="randomize">Randomize Map Order</label>
+    </div>
+    <div class="col-12">
+        <table class="table table-hover quake-font" id="maps-table">
+          <thead>
+            <tr>
+              <th scope="col"><button onclick="toggle_all()" type="button" class="btn quake-btn" id="toggle_all">Disable All</button></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for map in maps %}
+            <tr id="{{loop.index}}" >
+                <td onclick='toggle_map("{{map.name}}")'><input type="checkbox" id="{{map.name}}" value="{{map.name}}" name="maps" checked><label for="{{map.id}}">{{map.name}}</label></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+var toggle_all_state = true;
+function toggle_all() {
+    toggle_all_state = !toggle_all_state;
+    let el = document.getElementById("toggle_all");
+    if(toggle_all_state) {
+        el.innerHTML = "Disable All";
+    } else {
+        el.innerHTML = "Enable All";
+    }
+    var checkBoxes = document.querySelectorAll('input[name=maps]');
+    for (var i = checkBoxes.length - 1; i >= 0; i--) {
+        checkBoxes[i].checked = toggle_all_state;
+    }
+    return false;
+}
+
+function toggle_map(mapId) {
+    let el = document.getElementById(mapId);
+    // el.preventDefault();
+    el.checked = !el.checked;
+    return false;
+
+}
+
+function start_game()
+{
+    console.log("hello");
+
+    let checkedBoxes = document.querySelectorAll('input[name=maps]:checked');
+    let maps = []
+    for (var i = checkedBoxes.length - 1; i >= 0; i--) {
+        if(!checkedBoxes[i].checked) {
+            continue;
+        }
+
+        maps.push(checkedBoxes[i].value);
+    }
+
+    let bot_minplayers = document.getElementById("bot_minplayers").value;
+    let sv_maxclients = document.getElementById("sv_maxclients").value;
+    let fraglimit = document.getElementById("fraglimit").value;
+    let randomize = document.getElementById("randomize").checked;
+
+    let request_data = {
+        bot_minplayers : bot_minplayers,
+        sv_maxclients : sv_maxclients,
+        fraglimit : fraglimit,
+        randomize : randomize,
+        maps: maps
+    }
+
+    const response = fetch("/start_game", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request_data)
+    })
+    .then((data) => {
+
+        if (data.success == 0)
+        {
+            alert("Game Failed to start. Msg: " + data.msg );
+        } else
+        {
+            alert("Game Stated");
+        }
+    })
+    .catch((error) => {
+      alert("Failed to start");
+      console.error('Error:', error);
+    });
+
+    return false;
+}
+</script>
+{% endblock %}

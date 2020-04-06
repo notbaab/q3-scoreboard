@@ -1,9 +1,23 @@
-from . import db
+from . import db, stock_data
 from sqlalchemy.orm import relationship
 
 BOT_PREFIX_NAME = "<bot>"
 WORLD_ID = 1
 WORLD_NAME = "<world>"
+
+
+def insert_stock_map(session, mapname, file_preview):
+    mapModel = Map.query.filter_by(name=mapname).first()
+    if mapModel is not None:
+        return
+
+    mapModel = Map()
+    mapModel.name = mapname
+    mapModel.preview_file = file_preview
+    mapModel.stock_map = True
+
+    session.add(mapModel)
+    session.commit()
 
 
 def init_db():
@@ -15,9 +29,17 @@ def init_db():
         db.session.add(world)
         db.session.commit()
 
+    for map_name, file_preview in stock_data.stock_maps.items():
+        insert_stock_map(db.session, map_name, file_preview)
 
-def get_kills():
-    db.session.query
+
+
+
+class Map(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), unique=True, nullable=False)
+    stock_map = db.Column(db.Boolean)
+    preview_file = db.Column(db.String(80))
 
 
 class Weapon(db.Model):
