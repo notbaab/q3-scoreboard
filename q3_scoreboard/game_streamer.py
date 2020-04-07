@@ -31,6 +31,7 @@ def handle_kill_line(game_tracker, game_db_id, line):
     victum_id = get_userid(victum)
     kill_entry = models.GameKill(game_db_id, killer_id, victum_id, weapon_id)
     db.session.add(kill_entry)
+    db.session.commit()
 
 
 def add_final_score(player_id, score, game_id):
