@@ -8,6 +8,7 @@ set sv_maxclients {{sv_maxclients}}
 fraglimit {{fraglimit}}
 cl_allowDownload 1
 sv_allowdownload 1
+sv_pure 0
 
 {% for map in maps[:-1] %}
 set d{{loop.index}} "map {{map}} ; set nextmap vstr d{{loop.index + 1}}" {% endfor %}
